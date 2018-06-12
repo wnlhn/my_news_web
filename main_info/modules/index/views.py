@@ -13,7 +13,7 @@ def index():
     # name = session.get('name')
     # print(name)
     # logging.debug('debug')
-    # logging.info('info')
+    # logging.main_info('main_info')
     # logging.debug('debug')
     # logging.warn('warn')
     # logging.fatal('big_fatal')

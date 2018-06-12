@@ -10,7 +10,7 @@ from flask_session import Session
 from config import redis,config_dic
 
 
-db = None
+db = SQLAlchemy()
 redis_store = None
 
 
@@ -25,7 +25,7 @@ def create_app(model):
     # 生成日志文件
     log_file(config.level)
     # 创建数据库对象
-    db = SQLAlchemy(app)
+    db.init_app(app)
     global redis_store
     redis_store = redis.StrictRedis(host=config.REDIS_HOST,port=config.REDIS_PORT,decode_responses=True)
     # 使用Session关联app
