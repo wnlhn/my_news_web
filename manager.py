@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 import redis
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
+from flask_script import Manager
+from flask_migrate import Migrate,MigrateCommand
 
 app = Flask(__name__)
 
@@ -25,11 +27,19 @@ class Config(object):
     PERMANENT_SESSION_LIFETIME = 86400 # session的有效期，单位是秒  默认有效期是一个月
     SECRET_KEY = 'dsfkjlgkd'
 
-app.config.from_object(Config)
+# 开启CSRFProtect
 CSRFProtect(app)
+# 加载配置信息
+app.config.from_object(Config)
+# 创建数据库对象
 db = SQLAlchemy(app)
 redis_store = redis.StrictRedis(host=Config.REDIS_HOST,port=Config.REDIS_PORT,decode_responses=True)
+# 使用Session关联app
 Session(app)
+# 数据库迁移
+manager = Manager(app)
+Migrate(app,db)
+manager.add_command('db',MigrateCommand)
 
 @app.route('/')
 def index():
@@ -42,4 +52,4 @@ def index():
     return 'hello world'
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    manager.run()
