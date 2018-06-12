@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from config import redis,config_dic
+from main_info.modules.index import index_blue
 
 db = None
 
@@ -26,6 +27,7 @@ def create_app(model):
     redis_store = redis.StrictRedis(host=config.REDIS_HOST,port=config.REDIS_PORT,decode_responses=True)
     # 使用Session关联app
     Session(app)
+    app.register_blueprint(index_blue)
     return app
 
 def log_file(level):
