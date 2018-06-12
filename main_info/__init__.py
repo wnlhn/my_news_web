@@ -8,9 +8,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from config import redis,config_dic
-from main_info.modules.index import index_blue
+
 
 db = None
+redis_store = None
+
 
 def create_app(model):
     # 根据用户传入的值自动选择模式
@@ -24,9 +26,11 @@ def create_app(model):
     log_file(config.level)
     # 创建数据库对象
     db = SQLAlchemy(app)
+    global redis_store
     redis_store = redis.StrictRedis(host=config.REDIS_HOST,port=config.REDIS_PORT,decode_responses=True)
     # 使用Session关联app
     Session(app)
+    from main_info.modules.index import index_blue
     app.register_blueprint(index_blue)
     return app
 

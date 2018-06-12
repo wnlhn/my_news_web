@@ -1,4 +1,6 @@
 # 问句天几高，心中志比天更高
+from flask import render_template
+from main_info import redis_store
 from . import index_blue
 
 @index_blue.route('/')
@@ -15,5 +17,5 @@ def index():
     # logging.warn('warn')
     # logging.fatal('big_fatal')
     # current_app.logger.debug('current_app_debug')
-
-    return 'hello world'
+    # 注意点: 标记了templates为templates_folder之后会自动进入查找
+    return render_template('news/other.html')
