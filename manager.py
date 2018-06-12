@@ -2,6 +2,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import redis
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 
@@ -14,6 +15,7 @@ class Config(object):
     REDIS_PORT = 6379
 
 app.config.from_object(Config)
+CSRFProtect(app)
 db = SQLAlchemy(app)
 redis_store = redis.StrictRedis(host=Config.REDIS_HOST,port=Config.REDIS_PORT,decode_responses=True)
 
