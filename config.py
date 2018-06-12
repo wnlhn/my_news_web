@@ -1,4 +1,5 @@
 # 问句天几高，心中志比天更高
+import logging
 import redis
 
 
@@ -17,10 +18,11 @@ class Config(object):
     SESSION_REDIS = redis.StrictRedis(REDIS_HOST,REDIS_PORT) #指定存放的redis实力
     PERMANENT_SESSION_LIFETIME = 86400 # session的有效期，单位是秒  默认有效期是一个月
     SECRET_KEY = 'dsfkjlgkd'
-
+    level = logging.DEBUG
 
 class Product_model(Config):
     DEBUG = False
+    level = logging.ERROR
     pass
 
 

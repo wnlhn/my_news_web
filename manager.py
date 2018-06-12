@@ -1,4 +1,7 @@
 # 问句天几高，心中志比天更高
+import logging
+
+from flask import current_app
 from flask_script import Manager
 from flask_migrate import Migrate,MigrateCommand
 from main_info import create_app,db
@@ -18,6 +21,13 @@ def index():
     # session['name'] = 'laiwang'
     # name = session.get('name')
     # print(name)
+    logging.debug('debug')
+    logging.info('info')
+    logging.debug('debug')
+    logging.warn('warn')
+    logging.fatal('big_fatal')
+    current_app.logger.debug('current_app_debug')
+
     return 'hello world'
 
 if __name__ == '__main__':
