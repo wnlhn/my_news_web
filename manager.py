@@ -1,9 +1,10 @@
 # 问句天几高，心中志比天更高
 from flask_script import Manager
 from flask_migrate import Migrate,MigrateCommand
-from main_info import app,db
+from main_info import create_app,db
 
 
+app = create_app('develope')
 # 数据库迁移
 manager = Manager(app)
 Migrate(app,db)
