@@ -7,11 +7,11 @@ from flask import session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
-from config import redis,config_dic
+from my_news_web.config import redis,config_dic
 
 
 db = SQLAlchemy()
-redis_store = None
+redis_store = redis.StrictRedis()
 
 
 def create_app(model):
@@ -30,8 +30,14 @@ def create_app(model):
     redis_store = redis.StrictRedis(host=config.REDIS_HOST,port=config.REDIS_PORT,decode_responses=True)
     # 使用Session关联app
     Session(app)
+    # 注册首页蓝图
     from main_info.modules.index import index_blue
     app.register_blueprint(index_blue)
+    # 注册验证蓝图
+    from main_info.modules.passport import passprot_blue
+    app.register_blueprint(passprot_blue)
+
+
     return app
 
 def log_file(level):
