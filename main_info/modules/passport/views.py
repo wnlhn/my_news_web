@@ -17,7 +17,24 @@ from main_info import redis_store
 from main_info.models import User
 from main_info.response_code import RET
 from . import passprot_blue
-# from main_info.utils.response_code import RET
+
+
+
+
+# 退出登陆
+@passprot_blue.route('/logout',methods=['POST'])
+def logout():
+    # 清除session中的数据
+    # session.clear()  比较暴力,清除所有  一般不用
+    # 第一个参数是要清除的字段,第二个表示字段不存在返回的值
+    session.pop('user_id','')
+    session.pop('nick_name','')
+    session.pop('mobile','')
+    return jsonify(errno=RET.OK,errmsg='退出成功!')
+
+
+
+
 
 # 登陆用户
 # 请求路径: /passport/login
@@ -77,7 +94,7 @@ def login():
     #     return jsonify(errno=RET.DATAERR, errmsg='提交到数据库失败')
 
     # 8返回前端
-    return jsonify(errno=RET.OK, errmsg='登陆成功!')
+    return jsonify(errno=RET.OK, errmsg='登陆成功')
 
 
 
@@ -225,7 +242,7 @@ def get_sms_code():
 
 
 #图片验证码
-@passprot_blue.route('/')
+@passprot_blue.route('/',methods=['GET'])
 def get_image_code():
     # 1获取请求参数
     cur_id = request.args.get('cur_id')
