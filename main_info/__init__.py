@@ -19,7 +19,7 @@ def create_app(model):
     app = Flask(__name__)
     config = config_dic[model]
     # 开启CSRFProtect
-    CSRFProtect(app)
+    # CSRFProtect(app)
     # 加载配置信息
     app.config.from_object(config)
     # 生成日志文件
