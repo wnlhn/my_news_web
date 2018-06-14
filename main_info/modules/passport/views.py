@@ -7,13 +7,15 @@ from flask import current_app, jsonify
 from flask import make_response
 from flask import request
 from flask import session
+
+from libs.yuntongxun.sms import CCP
 from main_info.utils.captcha.captcha import captcha
 
-from my_news_web.main_info import constants, db
-from my_news_web.main_info import redis_store
-from my_news_web.main_info.libs.yuntongxun.sms import CCP
-from my_news_web.main_info.models import User
-from my_news_web.main_info.response_code import RET
+from main_info import constants, db
+from main_info import redis_store
+
+from main_info.models import User
+from main_info.response_code import RET
 from . import passprot_blue
 # from main_info.utils.response_code import RET
 
@@ -65,14 +67,14 @@ def login():
     session['mobile'] = user.mobile
     session['nick_name'] = user.nick_name
 
-
-    try:
-        # 7更新登陆时间
-        user.last_login = datetime.now()
-        db.session.commit()
-    except Exception as e:
-        current_app.logger.error(e)
-        return jsonify(errno=RET.DATAERR, errmsg='提交到数据库失败')
+    # 7更新登陆时间
+    user.last_login = datetime.now()
+    # try:
+    #
+    #     db.session.commit()
+    # except Exception as e:
+    #     current_app.logger.error(e)
+    #     return jsonify(errno=RET.DATAERR, errmsg='提交到数据库失败')
 
     # 8返回前端
     return jsonify(errno=RET.OK, errmsg='登陆成功!')
@@ -113,7 +115,7 @@ def register():
 
     # 3.通过手机号取出redis中的短信验证码
     try:
-        redis_sms_code = redis_store.get('msg_code:%s' % mobile).decode()
+        redis_sms_code = redis_store.get('msg_code:%s' % mobile)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg='获取短信验证码异常')
@@ -185,7 +187,7 @@ def get_sms_code():
 
      # 4.通过image_code_id取出redis中的图片验证码
     try:
-        redis_image_code = redis_store.get('image_code:%s'%image_code_id).decode(   )
+        redis_image_code = redis_store.get('image_code:%s'%image_code_id)
         current_app.logger.error(redis_image_code)
     except Exception as e:
         current_app.logger.error(e)
@@ -205,10 +207,10 @@ def get_sms_code():
      # 7.生成短信验证码
     sms_code = '%06d'%random.randint(0,999999)
      # 8.调用云通讯发送(手机号,短信验证码,有效期,模板id)
-    # ccp = CCP()
-    # result = ccp.send_template_sms(mobile,[sms_code,5],1)
-    # if result == -1:
-    #     return jsonify(errno=RET.THIRDERR,errmsg='短信验证码发送失败')
+    ccp = CCP()
+    result = ccp.send_template_sms(mobile,[sms_code,5],1)
+    if result == -1:
+        return jsonify(errno=RET.THIRDERR,errmsg='短信验证码发送失败')
     current_app.logger.debug('短信验证码是:%s'%sms_code)
      # 9.保存到redis
     try:

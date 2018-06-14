@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from my_news_web.main_info.libs.yuntongxun.CCPRestSDK import REST
+from main_info.libs.yuntongxun.CCPRestSDK import REST
 
 # 说明：主账号，登陆云通讯网站后，可在"控制台-应用"中看到开发者主账号ACCOUNT SID
 _accountSid = '8aaf070863f8fb040163fc4a4a7a02bb'

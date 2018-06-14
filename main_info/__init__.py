@@ -7,7 +7,7 @@ from flask import session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
-from my_news_web.config import redis,config_dic
+from config import redis,config_dic
 
 
 db = SQLAlchemy()
