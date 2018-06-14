@@ -1,9 +1,12 @@
 # 问句天几高，心中志比天更高
 import random
 import re
+from datetime import datetime
+
 from flask import current_app, jsonify
 from flask import make_response
 from flask import request
+from flask import session
 from main_info.utils.captcha.captcha import captcha
 
 from my_news_web.main_info import constants, db
@@ -14,10 +17,74 @@ from my_news_web.main_info.response_code import RET
 from . import passprot_blue
 # from main_info.utils.response_code import RET
 
-#登陆用户
+# 登陆用户
 # 请求路径: /passport/login
 # 请求方式: POST
 # 请求参数: mobile,password
+# 返回值: errno, errmsg
+@passprot_blue.route('/login',methods=['POST'])
+def login():
+    """
+    1 获取参数
+    2 验证参数
+    3 通过手机号取出用户对象
+    4 判断用户对象是否存在
+    5 判断是否信息正确
+    6 记录登陆状态
+    7 返回前端
+    :return:
+    """""
+    # 1获取参数
+    dict_data = request.json
+    mobile = dict_data['mobile']
+    password = dict_data['password']
+
+    # 2验证参数
+    if not all([mobile,password]):
+        return jsonify(errno=RET.PARAMERR,errmsg='参数不完整')
+    if not re.match('1[356789]\d{9}',mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg='手机号格式不正确')
+
+    # 3通过手机号取出用户对象
+    try:
+        user = User.query.filter(User.mobile == mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DATAERR ,errmsg='数据库查询异常')
+
+    # 4判断用户对象是否存在
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg='用户不存在')
+
+    # 5判断是否信息正确
+    if not user.check_passowrd(password):
+        return jsonify(errno=RET.DATAERR, errmsg='密码输入错误')
+
+    # 6记录登陆状态(使用session存储,下次访问直接去除)
+    session['user_id'] = user.id
+    session['mobile'] = user.mobile
+    session['nick_name'] = user.nick_name
+
+
+    try:
+        # 7更新登陆时间
+        user.last_login = datetime.now()
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DATAERR, errmsg='提交到数据库失败')
+
+    # 8返回前端
+    return jsonify(errno=RET.OK, errmsg='登陆成功!')
+
+
+
+
+
+# 注册用户
+# 请求路径: /passport/register
+# 请求方式: POST
+# 请求参数: mobile, sms_code,password
 # 返回值: errno, errmsg
 @passprot_blue.route('/register', methods=['POST'])
 def register():
@@ -64,12 +131,13 @@ def register():
     user.nick_name = mobile
     user.mobile = mobile
     # 使用property属性  高大上
-    # user.password = password
+    user.password = password
     # low version
     # user.password_hash = user.jiami_secret(password)
     # 7.保存到数据库
     try:
         db.session.add(user)
+        db.session.commit()
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg="用户保存异常")
