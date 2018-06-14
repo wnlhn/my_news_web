@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask import session
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_session import Session
 from config import redis,config_dic
 
@@ -19,7 +19,10 @@ def create_app(model):
     app = Flask(__name__)
     config = config_dic[model]
     # 开启CSRFProtect
-    # CSRFProtect(app)
+    # 开启了csrf保护之后,会对['post','put','patch','delete']的请求类型做校验
+    # 过程:获取到cookie中的csrf_token,获取到headers请求头中的csrf_token进行校验
+    # 开发者需要手动设置cookie和headers中的csrf_token
+    CSRFProtect(app)
     # 加载配置信息
     app.config.from_object(config)
     # 生成日志文件
@@ -37,6 +40,13 @@ def create_app(model):
     from main_info.modules.passport import passprot_blue
     app.register_blueprint(passprot_blue)
 
+
+    # 通过请求钩子来设置每次请求中的cookie中的csrf_token
+    @app.after_request
+    def after_requert(resp):
+        csrf_token = generate_csrf()
+        resp.set_cookie('csrf_token',csrf_token)
+        return resp
 
     return app
 

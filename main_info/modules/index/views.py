@@ -7,6 +7,7 @@ from main_info import redis_store
 from main_info.models import User
 from . import index_blue
 
+
 @index_blue.route('/',methods=['GET','POST'])
 def index():
     # 获取用户id
@@ -20,8 +21,12 @@ def index():
         except Exception as e:
             current_app.logger.error(e)
     # 返回数据到模板页面(把对象转换为字典)
+    data = {
+        # 固定语法 如果user为空返回None  如果有返回左边 定义时使用
+        "user_info":user.to_dict()if user else None
+    }
     # 注意点: 标记了templates为templates_folder之后会自动进入查找
-    return render_template('news/index.html')
+    return render_template('news/index.html',data=data)
 
 @index_blue.route('/favicon.ico')
 def favicon_ico():
