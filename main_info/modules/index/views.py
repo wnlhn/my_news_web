@@ -64,14 +64,14 @@ def newslist():
     return jsonify(error= RET.OK,errmsg='获取成功',cid=cid,currentPage=currentPage,totalPage=totalPage,newsList=newsList)
 
 
-
+# 点击排行展示
 @index_blue.route('/',methods=['GET','POST'])
 @user_login_data
 def index():
 
     # 查询数据库,按照点击量查询前十条新闻
     try:
-        new_list = News.query.order_by(News.clicks.desc()).limit(constants.HOME_PAGE_MAX_NEWS)
+        new_list = News.query.order_by(News.clicks.desc()).limit(constants.CLICK_RANK_MAX_NEWS).all()
     except Exception as e:
         current_app.logger.error(e)
 
