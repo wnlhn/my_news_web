@@ -3,8 +3,9 @@ from flask import current_app
 from flask import render_template
 from flask import session
 
+from main_info import constants
 from main_info import redis_store
-from main_info.models import User
+from main_info.models import User, News
 from . import index_blue
 
 
@@ -20,10 +21,25 @@ def index():
             user = User.query.get(user_id)
         except Exception as e:
             current_app.logger.error(e)
+
+
+    # 查询数据库,按照点击量查询前十条新闻
+    try:
+        new_list = News.query.order_by(News.clicks.desc()).limit(constants.HOME_PAGE_MAX_NEWS)
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # 把对象列表转换为字典列表
+    news_list_dic = []
+    for new in new_list:
+        news_list_dic.append(new.to_dict())
+
+
     # 返回数据到模板页面(把对象转换为字典)
     data = {
         # 固定语法 如果user为空返回None  如果有返回左边 定义时使用
-        "user_info":user.to_dict()if user else None
+        "user_info":user.to_dict()if user else None,
+        "news_list":news_list_dic
     }
     # 注意点: 标记了templates为templates_folder之后会自动进入查找
     return render_template('news/index.html',data=data)

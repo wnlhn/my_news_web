@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_session import Session
 from config import redis,config_dic
-
+from main_info.utils.common import do_index_filter
 
 db = SQLAlchemy()
 redis_store = redis.StrictRedis()
@@ -47,6 +47,9 @@ def create_app(model):
         csrf_token = generate_csrf()
         resp.set_cookie('csrf_token',csrf_token)
         return resp
+
+    # 添加模板过滤器到系统列表
+    app.add_template_filter(do_index_filter,'index_filter')
 
     return app
 
