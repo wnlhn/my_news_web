@@ -42,8 +42,8 @@ def newslist():
 
     # 3.根据条件查询数据
     try:
-        if cid != 1:
-            list = []
+        list = []
+        if cid != '1':
             list.append(News.category_id == cid)
         paginate = News.query.filter(*list).order_by(News.create_time.desc()).paginate(page,per_page,False)
         # 获取分页中的内容,总页数,当前页,当前页的所有对象
