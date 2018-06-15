@@ -6,7 +6,7 @@ from flask import render_template
 from flask import session
 
 from main_info import constants
-from main_info.models import User, News
+from main_info.models import News
 from main_info.response_code import RET
 from main_info.utils.common import user_login_data
 from . import news_blue
@@ -51,14 +51,19 @@ def news_detail(news_id):
     if not news:
         # 如果找不到就显示404错误，以后会对404页面进行特殊处理
         abort(404)
-    # 将对象转化为列表方便前端使用
 
+    # 收藏列表显示　后端实现
+    # 判断用户是否已经收藏此新闻，默认是False
+    is_collected = False
+    if g.user and news in g.user.collection_news:
+        is_collected = True
 
     data = {
         "user_info": g.user.to_dict() if g.user else None,
         "user_news_list": user_news_list,
         "user_fans": user_fans,
         "news_list":news_to_list,
-        "news_info":news.to_dict()
+        "news_info":news.to_dict(), # 将对象转化为列表方便前端使用
+        "is_collected":is_collected
     }
     return render_template('news/detail.html',data=data)
