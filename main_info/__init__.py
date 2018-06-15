@@ -39,6 +39,9 @@ def create_app(model):
     # 注册验证蓝图
     from main_info.modules.passport import passprot_blue
     app.register_blueprint(passprot_blue)
+    # 注册新闻蓝图
+    from main_info.modules.news import news_blue
+    app.register_blueprint(news_blue)
 
 
     # 通过请求钩子来设置每次请求中的cookie中的csrf_token
