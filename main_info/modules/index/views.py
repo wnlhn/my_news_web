@@ -1,5 +1,6 @@
 # 问句天几高，心中志比天更高
 from flask import current_app, jsonify
+from flask import g
 from flask import render_template
 from flask import request
 from flask import session
@@ -8,6 +9,7 @@ from main_info import constants
 from main_info import redis_store
 from main_info.models import User, News, Category
 from main_info.response_code import RET
+from main_info.utils.common import user_login_data
 from . import index_blue
 
 #首页新闻列表
@@ -64,17 +66,8 @@ def newslist():
 
 
 @index_blue.route('/',methods=['GET','POST'])
+@user_login_data
 def index():
-    # 获取用户id
-    user_id = session.get('user_id')
-
-    # 查询用户对象
-    user = None
-    if user_id:
-        try:
-            user = User.query.get(user_id)
-        except Exception as e:
-            current_app.logger.error(e)
 
     # 查询数据库,按照点击量查询前十条新闻
     try:
@@ -100,7 +93,7 @@ def index():
     # 返回数据到模板页面(把对象转换为字典)
     data = {
         # 固定语法 如果user为空返回None  如果有返回左边 定义时使用
-        "user_info":user.to_dict()if user else None,
+        "user_info":g.user.to_dict()if g.user else None,
         "news_list":news_list_dic,
         "cate_list":cate_list
     }
