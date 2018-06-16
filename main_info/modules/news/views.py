@@ -3,13 +3,107 @@ from flask import abort
 from flask import current_app, jsonify
 from flask import g
 from flask import render_template
+from flask import request
 from flask import session
 
-from main_info import constants
-from main_info.models import News
+from main_info import constants, db
+from main_info.models import News, Comment
 from main_info.response_code import RET
 from main_info.utils.common import user_login_data
 from . import news_blue
+
+
+# 新闻评论的实现
+# 请求路径: /news/news_comment
+# 请求方式: POST
+# 请求参数:news_id,comment,parent_id, g.user
+# 返回值: errno,errmsg,评论字典
+@news_blue.route('/news_comment',methods=['POST'])
+@user_login_data
+def comment():
+    # 判断是否登陆
+    if not g.user:
+        return jsonify(errno=RET.DATAERR,errmsg='用户未登陆')
+    # 获取数据
+    data_dict = request.json
+    news_id = data_dict.get('news_id')
+    content = data_dict.get('comment')
+    parent_id = data_dict.get('parent_id')
+
+    # 校验数据
+    if not all([news_id,content,g.user]):
+        return jsonify(errno=RET.PARAMERR,errmsg='参数错误')
+
+    # 相应操作
+    comment = Comment()
+    comment.user_id = g.user.id
+    comment.news_id = news_id
+    comment.content = content
+    if parent_id:
+        comment.parent_id = parent_id
+    # 提交到数据库
+    try:
+        db.session.add(comment)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg='评论失败')
+    # 返回前端
+    return  jsonify(errno=RET.OK,errmsg='操作成功',data=comment.to_dict())
+
+
+
+
+
+
+
+# 实现收藏/取消收藏
+# 请求路径: /news/news_collect
+# 请求方式: POST
+# 请求参数:news_id,action, g.user
+# 返回值: errno,errmsg
+
+@news_blue.route('/news_collect',methods=['POST'])
+@user_login_data
+def news_collecte():
+    # 判断用户是否登陆
+    if not g.user:
+        return jsonify(errno=RET.NODATA,errmsg='用户未登录')
+    # 获取数据
+    dict = request.json
+    news_id = dict.get('news_id')
+    action = dict.get('action')
+
+    # 校验数据
+    if not all([news_id,action,g.user]):
+        return jsonify(errno=RET.PARAMERR,errmsg='参数错误')
+
+    if not action in ['collect','cancel_collect']:
+        return jsonify(errno=RET.DATAERR,errmsg='操作类型错误')
+    # 取出新闻对象方便下面的操作
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+    if not news:
+        return jsonify(errno=RET.DBERR,errmsg='该新闻不存在')
+    #根据操作类型进行相应的操作
+    if action == 'collect':
+        g.user.collection_news.append(news)
+    else:
+        g.user.collection_news.remove(news)
+
+    # 返回前段
+    return jsonify(errno=RET.OK,errmsg='操作成功')
+
+
+
+
+
+
+
+
+
 
 
 #获取新闻详情信息
@@ -58,12 +152,45 @@ def news_detail(news_id):
     if g.user and news in g.user.collection_news:
         is_collected = True
 
+    # 取出所有的评论对象,并转化为字典列表
+    try:
+        contents = Comment.query.filter(Comment.news_id  == news.id).order_by(Comment.create_time.desc()).all()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    comments = []
+    for comment in contents:
+        comments.append(comment.to_dict())
+
+
     data = {
         "user_info": g.user.to_dict() if g.user else None,
         "user_news_list": user_news_list,
         "user_fans": user_fans,
         "news_list":news_to_list,
         "news_info":news.to_dict(), # 将对象转化为列表方便前端使用
-        "is_collected":is_collected
+        "is_collected":is_collected,
+        "comments":comments
     }
     return render_template('news/detail.html',data=data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
