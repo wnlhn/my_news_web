@@ -42,6 +42,10 @@ def create_app(model):
     # 注册新闻蓝图
     from main_info.modules.news import news_blue
     app.register_blueprint(news_blue)
+    # 注册个人中心蓝图
+    from main_info.modules.profile import profile_blue
+    app.register_blueprint(profile_blue)
+
 
 
     # 通过请求钩子来设置每次请求中的cookie中的csrf_token

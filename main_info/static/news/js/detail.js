@@ -23,7 +23,7 @@ $(function(){
         }
         $.ajax({
             url:'/news/news_collect',
-            type:'post',
+            type:'POST',
             contentType:'application/json',
             headers:{"X-CSRFToken":getCookie('csrf_token')},
             data:JSON.stringify(params),

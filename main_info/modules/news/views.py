@@ -190,10 +190,7 @@ def news_detail(news_id):
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg='数据库查询失败')
-    # 新闻对象列表转为字典列表,返回前端使用
-    news_to_list = []
-    for news in news_list:
-        news_to_list.append(news.to_dict())
+
 
 
     # 显示正文内容实现
@@ -230,7 +227,6 @@ def news_detail(news_id):
             "user_info": g.user.to_dict() if g.user else None,
             "user_news_list": user_news_list,
             "user_fans": user_fans,
-            "news_list": news_to_list,
             "news_info": news.to_dict(),  # 将对象转化为列表方便前端使用
             "is_collected": is_collected,
             "comments": comments,
@@ -260,7 +256,6 @@ def news_detail(news_id):
         "user_info": g.user.to_dict() if g.user else None,
         "user_news_list": user_news_list,
         "user_fans": user_fans,
-        "news_list":news_to_list,
         "news_info":news.to_dict(), # 将对象转化为列表方便前端使用
         "is_collected":is_collected,
         "comments":comments,

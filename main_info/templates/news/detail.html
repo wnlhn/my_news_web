@@ -10,6 +10,33 @@
 {% endblock %}
 
 
+{% block author_block %}
+        <div class="author_card">
+                {% if data.news_info.author.avatar_url %}
+                    <a href="#" class="author_pic"><img src="{{ data.news_info.author.avatar_url }}"></a>
+                {% else %}
+                    <a href="#" class="author_pic"><img src="../../static/news/images/user_pic.png" alt="author_pic"></a>
+                {% endif %}
+
+                <a href="#" class="author_name">{{ data.news_info.author.nick_name }}</a>
+                <div class="author_resume">{{ data.news_info.author.signature }}</div>
+                <div class="writings"><span>总篇数</span><b>{{ data.news_info.author.news_count}}</b></div>
+                <div class="follows"><span>粉丝</span><b>{{ data.news_info.author.followers_count}}</b></div>
+                <a href="javascript:;" class="focus fr">关注</a>
+                <a href="javascript:;" class="focused fr"><span class="out">已关注</span><span class="over">取消关注</span></a>
+        </div>
+
+        <div class="rank_title">
+            <h3>点击排行</h3>
+        </div>
+            <ul class="rank_list">
+                {% for new in data.news_list %}
+                    <li><span class="{{ loop.index | index_filter }}">{{ loop.index }}</span><a href="/news/{{ new.id }}">{{ new.title }}</a></li>
+
+                {% endfor %}
+            </ul>
+{% endblock %}
+
 {% block content_block %}
     <div class="detail_con fl">
             <h3>{{ data.news_info.title }}</h3>
@@ -89,24 +116,6 @@
 
 
         </div>
-{% endblock %}
-
-
-{% block author_block %}
-    <div class="author_card">
-                {% if data.user_info.avatar_url %}
-                    <a href="#" class="author_pic"><img src="{{ data.user_info.avatar_url }}"></a>
-                {% else %}
-                    <a href="#" class="author_pic"><img src="../../static/news/images/user_pic.png" alt="author_pic"></a>
-                {% endif %}
-
-                <a href="#" class="author_name">{{ data.user_info.nick_name }}</a>
-                <div class="author_resume">{{ data.user_info.nick_name }}的简介,{{ data.user_info.nick_name }}</div>
-                <div class="writings"><span>总篇数</span><b>{{ data.user_news_list.length}}</b></div>
-                <div class="follows"><span>粉丝</span><b>{{ data.user_fans.length}}</b></div>
-                <a href="javascript:;" class="focus fr">关注</a>
-                <a href="javascript:;" class="focused fr"><span class="out">已关注</span><span class="over">取消关注</span></a>
-            </div>
 {% endblock %}
 
 
