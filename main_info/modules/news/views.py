@@ -7,10 +7,71 @@ from flask import request
 from flask import session
 
 from main_info import constants, db
-from main_info.models import News, Comment
+from main_info.models import News, Comment, CommentLike
 from main_info.response_code import RET
 from main_info.utils.common import user_login_data
 from . import news_blue
+
+
+# 评论点赞功能
+# 请求路径: /news/comment_like
+# 请求方式: POST
+# 请求参数:news_id,comment_id,action,g.user
+# 返回值: errno,errmsg
+@news_blue.route('/comment_like',methods=['POST'])
+@user_login_data
+def like():
+    # 判断是否登陆
+    if not g.user:
+        return jsonify(errno=RET.NODATA,errmsg='用户未登录')
+
+    # 获取数据(新闻id,评论id,操作类型)
+    data_dict = request.json
+    news_id= data_dict.get('news_id')
+    comment_id = data_dict.get('comment_id')
+    action = data_dict.get('action')
+
+    # 校验参数
+    if not all([news_id,comment_id,action]):
+        return jsonify(errno=RET.PARAMERR,errmsg='参数错误')
+    if not action in ['add','remove']:
+        return jsonify(errno=RET.PARAMERR,errmsg='操作类型错误')
+
+    # 实现逻辑
+    try:
+        comment = Comment.query.get(comment_id)
+    except Exception as e:
+        current_app.logger.error(e)
+
+    if comment:
+        try:
+            # 创建点赞对象
+            commentlike = CommentLike()
+            commentlike.comment_id = comment_id
+            commentlike.user_id = g.user.id
+            # 获取点赞对象列表中
+            comment_like = CommentLike.query.filter(CommentLike.user_id == g.user.id,CommentLike.comment_id==comment_id).first()
+            if action == 'add':
+                if not comment_like:
+                    db.session.add(commentlike)
+                    comment.like_count += 1
+            else:
+                if comment_like:
+                    db.session.delete(comment_like)
+                    comment.like_count -= 1
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.DBERR,errmsg='数据库操作错误')
+        # 返回数据
+        return jsonify(errno=RET.OK,errmsg='操作成功')
+
+
+
+
+
+
+
+
 
 
 # 新闻评论的实现
@@ -162,6 +223,38 @@ def news_detail(news_id):
     for comment in contents:
         comments.append(comment.to_dict())
 
+    # 显示点赞信息
+    # 判断是否登陆
+    if not g.user:
+        data = {
+            "user_info": g.user.to_dict() if g.user else None,
+            "user_news_list": user_news_list,
+            "user_fans": user_fans,
+            "news_list": news_to_list,
+            "news_info": news.to_dict(),  # 将对象转化为列表方便前端使用
+            "is_collected": is_collected,
+            "comments": comments,
+            # "comment_like_lists":comment_like_lists
+        }
+        return render_template('news/detail.html',data=data)
+    # 获取该用户对该新闻的所有评论的所有点赞信息
+    try:
+        # 先获取所有的评论的编号
+        comment_ids = [comment['id'] for comment in comments]
+        comment_like_list = CommentLike.query.filter(CommentLike.comment_id.in_(comment_ids),CommentLike.user_id == g.user.id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg='查询数据库失败')
+    # 获取用户对此新闻所有点赞的评论的编号
+    comment_like_ids = [obj.comment_id for obj in comment_like_list]
+    # 转化为字典列表并增加一个字段作为是否点赞的依据
+    # comment_like_lists = []
+    for comment in comments:
+        comment['is_liked'] = False
+        if g.user and comment['id'] in comment_like_ids:
+            comment['is_liked'] = True
+        # comment_like_lists.append(comment)
+
 
     data = {
         "user_info": g.user.to_dict() if g.user else None,
@@ -170,7 +263,8 @@ def news_detail(news_id):
         "news_list":news_to_list,
         "news_info":news.to_dict(), # 将对象转化为列表方便前端使用
         "is_collected":is_collected,
-        "comments":comments
+        "comments":comments,
+        # "comment_like_lists":comment_like_lists
     }
     return render_template('news/detail.html',data=data)
 
