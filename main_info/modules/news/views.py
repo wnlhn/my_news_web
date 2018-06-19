@@ -186,17 +186,20 @@ def news_detail(news_id):
     # 显示热门新闻排行榜
     # 查询出数据库点击数量最多的１０条新闻
     try:
-        news_list = News.query.order_by(News.clicks.desc()).limit(constants.CLICK_RANK_MAX_NEWS)
+        rank_list = News.query.order_by(News.clicks.desc()).limit(constants.CLICK_RANK_MAX_NEWS)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg='数据库查询失败')
+    rank_news = []
+    for news in rank_list:
+        rank_news.append(news.to_dict())
 
 
 
     # 显示正文内容实现
     # 通过news_id查询news对象
     try:
-        news = News.query.get(news_id)
+         news = News.query.get(news_id)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg='数据库查询失败')
@@ -252,6 +255,15 @@ def news_detail(news_id):
         # comment_like_lists.append(comment)
 
 
+    is_focus = False
+    # 是否关注过作者
+    if news.user:
+        has_author = True
+        if g.user and  g.user in news.user.followers:
+            is_focus = True
+    else:
+        has_author = False
+
     data = {
         "user_info": g.user.to_dict() if g.user else None,
         "user_news_list": user_news_list,
@@ -259,6 +271,9 @@ def news_detail(news_id):
         "news_info":news.to_dict(), # 将对象转化为列表方便前端使用
         "is_collected":is_collected,
         "comments":comments,
+        "is_focus": is_focus,
+        "has_author":has_author,
+        "rank_list":rank_news
         # "comment_like_lists":comment_like_lists
     }
     return render_template('news/detail.html',data=data)

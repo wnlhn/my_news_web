@@ -136,6 +136,7 @@ class News(BaseModel, db.Model):
     def to_dict(self):
         resp_dict = {
             "id": self.id,
+            "status":self.status,
             "title": self.title,
             "source": self.source,
             "digest": self.digest,

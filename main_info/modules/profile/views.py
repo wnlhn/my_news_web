@@ -4,7 +4,10 @@ from flask import g, jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
+from main_info.models import Category,News
 
+
+from main_info import constants,db
 from main_info.response_code import RET
 from main_info.utils.common import user_login_data
 from . import profile_blue
@@ -23,9 +26,112 @@ def pic_info():
     return render_template('news/user_pic_info.html',data = data)
 
 
-@profile_blue.route('/')
+# 新闻列表显示
+@profile_blue.route('/news_list')
+@user_login_data
+def news_list():
+    # 获取参数p
+    page = request.args.get('p',1)
+    # 类型转换
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = 1
+
+    # 获取分页对象
+    paginate = News.query.filter(News.user_id == g.user.id).paginate(page,3,False)
+    # 获取分页数据
+    page = paginate.page
+    page_totle = paginate.pages
+    items = paginate.items
+
+    # 转化成字典供前端使用
+    news_dict = []
+    for item in items:
+        news_dict.append(item.to_dict())
+    # 返回前端
+    data = {
+        "page":page,
+        "totle_page":page_totle,
+        "news_list":news_dict
+    }
+    return render_template('news/user_news_list.html',data=data)
 
 
+
+# 收藏显示
+@profile_blue.route('/collection')
+@user_login_data
+def collection():
+    # 获取参数p
+    page = request.args.get('p',1)
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = 1
+    try:
+        paginate = g.user.collection_news.paginate(page,constants.USER_COLLECTION_MAX_NEWS,False)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg='数据库查询失败')
+    # 将分页对象中的数据取出来
+    totle_page = paginate.pages
+    current_page = paginate.page
+    items = paginate.items
+    collections = []
+    for collection in items:
+        collections.append(collection.to_dict())
+    data = {
+        "total_page":totle_page,
+        "current_page": current_page,
+        "collections":collections
+    }
+    return render_template('news/user_collection.html',data=data)
+
+# 新闻发布
+@profile_blue.route('/news_release',methods=['POST','GET'])
+@user_login_data
+def news_release():
+    if request.method == 'GET':
+        category_list = Category.query.all()
+        categories = []
+        for category in category_list:
+            category_dic = category.to_dict()
+            if category_dic['id'] != 1:
+                categories.append(category_dic)
+        data = {
+            'categories':categories
+        }
+        return render_template('news/user_news_release.html',data=data)
+    # 获取参数
+    title = request.form.get('title')
+    category_id = request.form.get('category_id')
+    digest = request.form.get('digest')
+    content = request.form.get('content')
+
+    # 校验参数
+    if not all([title,category_id,digest,content]):
+        return jsonify(errno=RET.PARAMERR,errmsg='参数不完整')
+
+    # 创建新闻对象
+    try:
+        news_obj = News()
+        news_obj.title = title
+        news_obj.source = '个人发布'
+        news_obj.digest = digest
+        news_obj.content = content
+        news_obj.category_id = category_id
+        news_obj.user_id = g.user.id
+        news_obj.status = 1
+        db.session.add(news_obj)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg='数据库错误')
+    # 返回前端
+    return jsonify(err=RET.OK,errmsg='操作成功')
 
 
 

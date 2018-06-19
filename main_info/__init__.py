@@ -3,12 +3,14 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask
+from flask import g
+from flask import render_template
 from flask import session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_session import Session
 from config import redis,config_dic
-from main_info.utils.common import do_index_filter
+from main_info.utils.common import do_index_filter, user_login_data
 
 db = SQLAlchemy()
 redis_store = redis.StrictRedis()
@@ -58,7 +60,21 @@ def create_app(model):
     # 添加模板过滤器到系统列表
     app.add_template_filter(do_index_filter,'index_filter')
 
+
+    @app.errorhandler(404)
+    @user_login_data
+    def error(resp):
+        data = {
+            "user_info": g.user.to_dict()
+        }
+        return render_template('news/404.html',data=data)
+
+
     return app
+
+
+
+
 
 def log_file(level):
     # 设置日志的记录等级
