@@ -7,10 +7,65 @@ from flask import request
 from flask import session
 
 from main_info import constants, db
-from main_info.models import News, Comment, CommentLike
+from main_info.models import News, Comment, CommentLike, User
 from main_info.response_code import RET
 from main_info.utils.common import user_login_data
 from . import news_blue
+
+
+# 作者的关注和取消
+@news_blue.route('/followed_user', methods=['POST'])
+@user_login_data
+def followed_user():
+    if not g.user:
+        return jsonify(errno=RET.NODATA,errmsg='用户未登录')
+    # 　获取数据
+    data_dict = request.json
+    action = data_dict.get('action')
+    author_id = data_dict.get('user_id')
+    # 　校验数据
+    if not all([action, author_id]):
+        return jsonify(errno=RET.PARAMERR, errmsg='参数不完整')
+
+    if action not in ['unfollow', 'follow']:
+        return jsonify(errno=RET.PARAMERR, errmsg='参数错误')
+    # 根据id取出作者对象
+    try:
+        author = User.query.get(author_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='数据库查询失败')
+
+    # 判断作者对象是否存在
+    if not author:
+        return jsonify(errno=RET.DBERR, errmsg='作者不存在')
+
+    # 操作数据库
+    try:
+        if action == 'follow':
+            if g.user in author.followers:
+                return jsonify(errno=RET.DATAERR,errmsg='已经关注了此人')
+            author.followers.append(g.user)
+        else:
+            if g.user not in author.followers:
+                return jsonify(errno=RET.DATAERR,errmsg='已经取消了关注')
+            author.followers.remove(g.user)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='数据库操作失败')
+
+# 返回前端页面
+    return jsonify(errno=RET.OK,errmsg='操作成功')
+
+
+
+
+
+
+
+
+
+
 
 
 # 评论点赞功能

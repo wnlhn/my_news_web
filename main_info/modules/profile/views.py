@@ -4,8 +4,7 @@ from flask import g, jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
-from main_info.models import Category,News
-
+from main_info.models import Category,News, User
 
 from main_info import constants,db
 from main_info.response_code import RET
@@ -24,6 +23,45 @@ def pic_info():
         "user_info":g.user.to_dict()
     }
     return render_template('news/user_pic_info.html',data = data)
+
+
+# 关注列表显示
+@profile_blue.route('/follow')
+@user_login_data
+def follow():
+    # 获取参数p
+    page = request.args.get('p',1)
+
+    # 校验参数　参数类型转换
+    try:
+        page = int(page)
+    except Exception as e:
+        page = 1
+
+    # 获取分页对象
+    paginate = g.user.followed.paginate(page,constants.USER_FOLLOWED_MAX_COUNT,False)
+    # 获取分页对象中的参数
+    total_page = paginate.pages
+    current_page = paginate.page
+    items = paginate.items
+
+    # 转换为字典列表
+    follow_list = []
+    for item in items:
+        follow_list.append(item.to_dict())
+
+    # 拼接data,
+    data = {
+        "total_page":total_page,
+        "current_page":current_page,
+        "follow_list":follow_list
+    }
+    # 返回前端
+    return render_template('news/user_follow.html',data=data)
+
+
+
+
 
 
 # 新闻列表显示
