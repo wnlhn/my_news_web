@@ -47,7 +47,9 @@ def create_app(model):
     # 注册个人中心蓝图
     from main_info.modules.profile import profile_blue
     app.register_blueprint(profile_blue)
-
+    # 注册管理员蓝图
+    from main_info.modules.admin import admin_blue
+    app.register_blueprint(admin_blue)
 
 
     # 通过请求钩子来设置每次请求中的cookie中的csrf_token
@@ -64,10 +66,13 @@ def create_app(model):
     @app.errorhandler(404)
     @user_login_data
     def error(resp):
-        data = {
-            "user_info": g.user.to_dict()
-        }
-        return render_template('news/404.html',data=data)
+        if g.user:
+            data = {
+                "user_info": g.user.to_dict()
+            }
+            return render_template('news/404.html',data=data)
+        else:
+            return render_template('news/404.html',data={})
 
 
     return app
