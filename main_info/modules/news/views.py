@@ -280,6 +280,15 @@ def news_detail(news_id):
 
     # 显示点赞信息
     # 判断是否登陆
+    is_focus = False
+    # 是否关注过作者
+    if news.user:
+        has_author = True
+        if g.user and g.user in news.user.followers:
+            is_focus = True
+    else:
+        has_author = False
+
     if not g.user:
         data = {
             "user_info": g.user.to_dict() if g.user else None,
@@ -288,6 +297,8 @@ def news_detail(news_id):
             "news_info": news.to_dict(),  # 将对象转化为列表方便前端使用
             "is_collected": is_collected,
             "comments": comments,
+            "rank_list":rank_news,
+            "has_author":has_author
             # "comment_like_lists":comment_like_lists
         }
         return render_template('news/detail.html',data=data)
@@ -308,16 +319,6 @@ def news_detail(news_id):
         if g.user and comment['id'] in comment_like_ids:
             comment['is_liked'] = True
         # comment_like_lists.append(comment)
-
-
-    is_focus = False
-    # 是否关注过作者
-    if news.user:
-        has_author = True
-        if g.user and  g.user in news.user.followers:
-            is_focus = True
-    else:
-        has_author = False
 
     data = {
         "user_info": g.user.to_dict() if g.user else None,

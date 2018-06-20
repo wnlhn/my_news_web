@@ -15,12 +15,12 @@
     {% if data.has_author %}
             <div class="author_card">
                 {% if data.news_info.author.avatar_url %}
-                    <a href="#" class="author_pic"><img src="{{ data.news_info.author.avatar_url }}"></a>
+                    <a href="/profile/other?user_id={{ data.news_info.author.id }}" class="author_pic"><img src="{{ data.news_info.author.avatar_url }}"></a>
                 {% else %}
-                    <a href="#" class="author_pic"><img src="../../static/news/images/user_pic.png" alt="author_pic"></a>
+                    <a href="/profile/other?user_id={{ data.news_info.author.id }}" class="author_pic"><img src="../../static/news/images/user_pic.png" alt="author_pic"></a>
                 {% endif %}
 
-                <a href="#" class="author_name">{{ data.news_info.author.nick_name }}</a>
+                <a href="/profile/other?user_id={{ data.news_info.author.id }}" class="author_name">{{ data.news_info.author.nick_name }}</a>
                 <div class="author_resume">{{ data.news_info.author.signature }}</div>
                 <div class="writings"><span>总篇数</span><b>{{ data.news_info.author.news_count}}</b></div>
                 <div class="follows"><span>粉丝</span><b>{{ data.news_info.author.followers_count}}</b></div>
@@ -100,14 +100,14 @@
                             <img src="../../static/news/images/worm.jpg" alt="用户图标">
                         {% endif %}
                     </div>
-                    <div class="user_name fl">用户{{ data.user_info.nick_name }}</div>
+                    <div class="user_name fl">{{ comment.user.nick_name }}</div>
                     <div class="comment_text fl">
                         {{ comment.content }}
                     </div>
 
                         {% if comment.parent %}
                             <div class="reply_text_con fl">
-                                <div class="user_name2">用户{{ comment.parent.user.nick_name }}</div>
+                                <div class="user_name2">{{ comment.parent.user.nick_name }}</div>
                                     <div class="reply_text">
                                         {{ comment.parent.content}}
                                     </div>

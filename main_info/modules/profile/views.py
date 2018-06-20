@@ -11,7 +11,7 @@ from main_info.response_code import RET
 from main_info.utils.common import user_login_data
 from . import profile_blue
 
-# 上传头像
+# TODO  上传头像
 # 请求路径: /user/pic_info
 # 请求方式:GET,POST
 # 请求参数:无, POST有参数,avatar
@@ -23,6 +23,78 @@ def pic_info():
         "user_info":g.user.to_dict()
     }
     return render_template('news/user_pic_info.html',data = data)
+
+
+
+# 作者详情页面左侧
+@profile_blue.route('/other')
+@user_login_data
+def other():
+    if not g.user:
+        return redirect('/')
+    author_id = request.args.get('user_id')
+    if not author_id:
+        return jsonify(errno=RET.NODATA,errmsg='作者不存在')
+    try:
+        author = User.query.get(author_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,retmsg='数据库查询失败')
+    if not author:
+        return jsonify(errno=RET.NODATA,errmsg='作者不存在')
+
+    is_focus = False
+    if g.user and g.user in author.followers:
+        is_focus = True
+
+    data = {
+        "author_info":author.to_dict(),
+        "user_info":g.user.to_dict(),
+        "is_focus":is_focus
+    }
+    return render_template('news/other.html',data=data)
+
+
+
+
+# 作者详情页面　新闻列表
+@profile_blue.route('/other/news_list')
+@user_login_data
+def other_news_list():
+    author_id = request.args.get('user_id')
+    page = request.args.get('p',1)
+    if not author_id:
+        return jsonify(errno=RET.DATAERR,errmsg='参数不完整')
+
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = 1
+    author = User.query.get(author_id)
+    paginate = author.news_list.paginate(page,3,False)
+    total_page = paginate.pages
+    current_page = paginate.page
+    items = paginate.items
+    news_dict = []
+    for item in items:
+        news_dict.append(item.to_dict())
+
+    data = {
+        "total_page":total_page,
+        "current_page": current_page,
+        "news_dict": news_dict
+    }
+
+    return  jsonify(errno=RET.OK,errmsg='操作成功',data=data)
+
+
+
+
+
+
+
+
 
 
 # 关注列表显示
