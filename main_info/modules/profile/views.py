@@ -8,6 +8,7 @@ from main_info.models import Category,News, User
 
 from main_info import constants,db
 from main_info.response_code import RET
+from main_info.utils.image_storage import image_storage
 from main_info.utils.common import user_login_data
 from . import profile_blue
 
@@ -16,14 +17,25 @@ from . import profile_blue
 # 请求方式:GET,POST
 # 请求参数:无, POST有参数,avatar
 # 返回值:GET请求: user_pci_info.html页面,data字典数据, POST请求: errno, errmsg,avatar_url
-@profile_blue.route('/pic_info')
+@profile_blue.route('/pic_info',methods=['GET','POST'])
 @user_login_data
 def pic_info():
+    if request.method == 'GET':
+        data = {
+            "user_info":g.user.to_dict()
+        }
+        return render_template('news/user_pic_info.html',data = data)
+    #　获取参数
+    avatar = request.files.get('avatar')
+    avatar_data = avatar.read()
+    print(avatar_data)
+    # 调用七牛云上传图片方法
+    image_url = image_storage(avatar_data)
     data = {
-        "user_info":g.user.to_dict()
+        'avatar_url' : constants.QINIU_DOMIN_PREFIX + image_url
     }
-    return render_template('news/user_pic_info.html',data = data)
-
+    g.user.avatar_url = image_url
+    return jsonify(errno=RET.OK,errmsg='操作成功',data=data)
 
 
 # 作者详情页面左侧

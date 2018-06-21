@@ -8,7 +8,6 @@ $(function () {
     $(".pic_info").submit(function (e) {
         e.preventDefault()
 
-        //TODO 上传头像
         $(this).ajaxSubmit({
             url: "/profile/pic_info",
             type: "POST",

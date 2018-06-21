@@ -15,7 +15,7 @@
         <div class="form-group">
             <label class="label01">当前图像：</label>
             {% if data.user_info.avatar_url%}
-                <img src="data.user_info.avatar_url" alt="用户图片" class="now_user_pic">
+                <img src="{{ data.user_info.avatar_url }}" alt="用户图片" class="now_user_pic">
             {% else %}
                 <img src="../../static/news/images/user_pic.png" alt="用户图片" class="now_user_pic">
             {% endif %}
