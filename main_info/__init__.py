@@ -62,7 +62,7 @@ def create_app(model):
     # 添加模板过滤器到系统列表
     app.add_template_filter(do_index_filter,'index_filter')
 
-
+    # 捕获４０４错误页面
     @app.errorhandler(404)
     @user_login_data
     def error(resp):
