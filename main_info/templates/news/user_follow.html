@@ -16,7 +16,7 @@
             {% for follow in data.follow_list %}
                 <li class="author_card card_list">
                     {% if follow.avatar_url %}
-                        <a href="/profile/other?user_id={{ follow.id }}" target="_blank" class="author_pic"><img src="follow.avatar_url" alt="author_pic"></a>
+                        <a href="/profile/other?user_id={{ follow.id }}" target="_blank" class="author_pic"><img src="{{ follow.avatar_url }}" alt="author_pic"></a>
                     {% else %}
                         <a href="/profile/other?user_id={{ follow.id }}" target="_blank" class="author_pic"><img src="../../static/news/images/cat.jpg" alt="author_pic"></a>
                     {% endif %}

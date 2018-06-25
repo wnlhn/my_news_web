@@ -12,7 +12,8 @@ from main_info.utils.image_storage import image_storage
 from main_info.utils.common import user_login_data
 from . import profile_blue
 
-# TODO  上传头像
+
+# 头像上传
 # 请求路径: /user/pic_info
 # 请求方式:GET,POST
 # 请求参数:无, POST有参数,avatar
@@ -28,7 +29,7 @@ def pic_info():
     #　获取参数
     avatar = request.files.get('avatar')
     avatar_data = avatar.read()
-    print(avatar_data)
+    # print(avatar_data)
     # 调用七牛云上传图片方法
     image_url = image_storage(avatar_data)
     data = {
@@ -212,6 +213,7 @@ def collection():
     }
     return render_template('news/user_collection.html',data=data)
 
+
 # 新闻发布
 @profile_blue.route('/news_release',methods=['POST','GET'])
 @user_login_data
@@ -232,11 +234,18 @@ def news_release():
     category_id = request.form.get('category_id')
     digest = request.form.get('digest')
     content = request.form.get('content')
+    image = request.files.get('index_image')
 
     # 校验参数
-    if not all([title,category_id,digest,content]):
+    if not all([title,category_id,digest,content,image]):
         return jsonify(errno=RET.PARAMERR,errmsg='参数不完整')
-
+    image_data = image.read()
+    # 调用七牛云返回图片名
+    try:
+        image_url = image_storage(image_data)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.THIRDERR,errmsg='七牛云上传失败')
     # 创建新闻对象
     try:
         news_obj = News()
@@ -247,6 +256,7 @@ def news_release():
         news_obj.category_id = category_id
         news_obj.user_id = g.user.id
         news_obj.status = 1
+        news_obj.index_image_url = constants.QINIU_DOMIN_PREFIX + image_url
         db.session.add(news_obj)
         db.session.commit()
     except Exception as e:
