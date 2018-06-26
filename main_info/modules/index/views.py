@@ -44,7 +44,7 @@ def newslist():
 
     # 3.根据条件查询数据
     try:
-        list = []
+        list = [News.status==0]
         if cid != '1':
             list.append(News.category_id == cid)
         paginate = News.query.filter(*list).order_by(News.create_time.desc()).paginate(page,per_page,False)
